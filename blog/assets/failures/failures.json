@@ -1,0 +1,46 @@
+{
+  "lapa_nsvq": {
+    "baseline": "lapa_nsvq",
+    "baseline_label": "LAPA-NSVQ",
+    "q_idx": 502,
+    "instruction": "pushing bottle from left to right",
+    "query_template": "Pushing [something] from left to right",
+    "baseline_retrieved_template": "Pushing [something] so that it almost falls off but doesn't",
+    "vicreg_prog_nn1": 0.986,
+    "baseline_prog_nn1": 0.0,
+    "vlm_gap": 0.986,
+    "n_candidates": 5
+  },
+  "adaworld_bvae": {
+    "baseline": "adaworld_bvae",
+    "baseline_label": "AdaWorld \u03b2-VAE",
+    "q_idx": 466,
+    "instruction": "throwing tissue",
+    "query_template": "Throwing [something]",
+    "baseline_retrieved_template": "Dropping [something] next to [something]",
+    "vicreg_label_match": true,
+    "note": "VICReg nn0 uses exact same label text as query (same action clip in train bank)"
+  },
+  "univla_dino_vq": {
+    "baseline": "univla_dino_vq",
+    "baseline_label": "UniVLA DINO-VQ",
+    "q_idx": 658,
+    "instruction": "covering bottle with paper",
+    "query_template": "Covering [something] with [something]",
+    "baseline_retrieved_template": "Putting [something] on a surface",
+    "vicreg_prog_nn1": 0.047,
+    "baseline_prog_nn1": 0.0,
+    "vlm_gap": 0.047,
+    "n_candidates": 5
+  },
+  "villax_proxy": {
+    "baseline": "villax_proxy",
+    "baseline_label": "villa-X structural",
+    "q_idx": 821,
+    "instruction": "lifting pencil up completely without letting it drop down",
+    "query_template": "Lifting [something] up completely without letting it drop down",
+    "baseline_retrieved_template": "Pushing [something] so that it falls off the table",
+    "vicreg_label_match": true,
+    "note": "VICReg nn0 uses exact same label text as query (same action clip in train bank)"
+  }
+}

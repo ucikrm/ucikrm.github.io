@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robotic Replay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --text: #111;
+  --muted: #555;
+  --accent: #1d4ed8;
+  --accent-light: #eff6ff;
+  --border: #e4e4e7;
+  --bg-light: #f8fafc;
+  --max: 880px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: #fff;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+/* ── Navigation ── */
+nav {
+  position: sticky; top: 0;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 50;
+}
+nav ul {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  list-style: none;
+  height: 48px;
+  align-items: center;
+}
+nav a {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .2s;
+}
+nav a:hover { color: var(--accent); }
+
+/* ── Hero ── */
+.hero {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 72px 20px 60px;
+  text-align: center;
+  animation: rise .7s ease both;
+}
+.hero h1 {
+  font-family: 'Lora', serif;
+  font-size: clamp(2em, 5vw, 2.8em);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.5px;
+  margin-bottom: 14px;
+}
+.hero .venue {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 4px;
+  margin-bottom: 18px;
+}
+.hero .subtitle {
+  font-size: 1.1em;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 22px;
+}
+.hero .institution {
+  font-size: .9em;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.btns {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-size: .9em;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1.5px solid var(--text);
+  color: var(--text);
+  background: #fff;
+  transition: all .2s;
+  cursor: pointer;
+}
+.btn:hover { background: var(--text); color: #fff; }
+.btn-filled { background: var(--text); color: #fff; }
+.btn-filled:hover { background: #333; border-color: #333; }
+
+/* ── Container ── */
+.c {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ── Sections ── */
+section {
+  padding: 64px 0;
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .55s ease, transform .55s ease;
+}
+section.visible { opacity: 1; transform: none; }
+
+section h2 {
+  font-family: 'Lora', serif;
+  font-size: 1.65em;
+  font-weight: 600;
+  margin-bottom: 22px;
+  letter-spacing: -.3px;
+}
+section p { color: var(--muted); margin-bottom: 14px; }
+section p:last-child { margin-bottom: 0; }
+
+/* ── Video ── */
+.vid-wrap {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0; overflow: hidden;
+  border-radius: 10px;
+  background: #0f0f0f;
+  margin: 24px 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,.12);
+}
+.vid-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+.vid-wrap video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.vid-missing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #999;
+  font-size: .85em;
+  text-align: center;
+  padding: 20px;
+}
+.vid-missing a { color: #7ab0ff; }
+/* placeholder shown until real ID is added */
+.vid-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: .85em;
+  text-align: center;
+  padding: 20px;
+  pointer-events: none;
+}
+.vid-placeholder svg { margin-bottom: 12px; opacity: .35; }
+.vid-caption {
+  text-align: center;
+  font-size: .82em;
+  color: #999;
+  font-style: italic;
+  margin-top: -14px;
+  margin-bottom: 10px;
+}
+
+/* ── Contribution cards ── */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 28px 0;
+}
+.card {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.card:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(29,78,216,.07); }
+.card .badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-size: .7em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.card h3 {
+  font-size: 1em;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.card p { font-size: .9em; margin: 0; }
+
+/* ── Tech blocks ── */
+.tech {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-light);
+  border-radius: 0 8px 8px 0;
+  padding: 18px 22px;
+  margin: 16px 0;
+}
+.tech h3 { font-size: 1em; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.tech p { font-size: .92em; margin: 0; }
+
+/* ── Video grid ── */
+.vid-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 24px 0;
+}
+.vid-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin: 16px 0;
+}
+.vid-wrap-vertical {
+  padding-bottom: 177.78%; /* 9:16 portrait */
+}
+.vid-grid-3 .vid-wrap { margin: 0 0 6px 0; }
+
+/* ── Challenge list ── */
+.challenges { list-style: none; padding: 0; margin: 20px 0; }
+.challenges li {
+  display: flex;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .95em;
+  color: var(--muted);
+}
+.challenges li:last-child { border-bottom: none; }
+.cx {
+  flex-shrink: 0;
+  width: 24px; height: 24px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 50%;
+  font-size: .75em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+/* ── Next-steps list ── */
+.steps { list-style: none; padding: 0; margin: 20px 0; }
+.steps li {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .95em;
+  color: var(--muted);
+}
+.steps li:last-child { border-bottom: none; }
+.sn {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: .8em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+/* ── Citation ── */
+.cite-box {
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 24px;
+  font-family: 'Courier New', monospace;
+  font-size: .82em;
+  color: var(--muted);
+  white-space: pre;
+  overflow-x: auto;
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  color: #bbb;
+  font-size: .85em;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Animations ── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 620px) {
+  .cards, .vid-grid { grid-template-columns: 1fr; }
+  nav ul { gap: 14px; }
+  .hero { padding: 52px 20px 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav>
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#novelty">Novelty</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#demos">Demos</a></li>
+    <li><a href="#training">Training</a></li>
+    <li><a href="#challenges">Challenges</a></li>
+    <li><a href="#next">Future Work</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero">
+  <div class="venue">Robotics Research Project · 2026</div>
+  <h1>Robotic Replay</h1>
+  <p class="subtitle">Robotic Teleoperation Replay and Data Collection</p>
+  <p class="institution">XleRobot Embodiment &nbsp;·&nbsp; π0.5 Foundation Model</p>
+  <div class="btns">
+    <a class="btn btn-filled" href="https://github.com/Cristian4151/Xlerobot-Task-Handler" target="_blank" rel="noopener">GitHub Repository</a>
+  </div>
+</div>
+
+<div class="c">
+
+<!-- ═══════════════ OVERVIEW ═══════════════ -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p>
+    We designed, assembled, and programmed an <strong>XleRobot</strong>, a low-cost dual-arm mobile platform, entirely within this quarter, and built the first teleoperation record-and-replay system for this embodiment. Using keyboard teleoperation and a custom skill capture pipeline, we collected a 50-episode dataset for a block pick-up task and fine-tuned the π0.5 action expert on it.
+  </p>
+  <p>
+    Our first approach, deploying π0.5 fine-tuned on an external dataset from a similar embodiment, failed even after building a custom joint mapping. We pivoted, first to spatial room mapping (which worked), then, with course guidance, to teleoperation replay and data collection. The delivered endpoint is working teleoperation, replay, the collected dataset, and a trained checkpoint. Deploying that checkpoint on hardware remains future work due to cloud GPU costs.
+  </p>
+
+  <div class="vid-wrap" id="vov">
+    <video src="videos/teaser.mp4" controls autoplay muted loop playsinline preload="metadata"
+           onerror="vidFail(this,'https://youtu.be/OGRxt0gcZgc')"></video>
+  </div>
+  <p class="vid-caption">Project teaser: teleoperation replay on XleRobot</p>
+</section>
+
+<!-- ═══════════════ NOVELTY ═══════════════ -->
+<section id="novelty">
+  <h2>Contributions</h2>
+  <p>What is new here, stated plainly:</p>
+  <div class="cards">
+    <div class="card">
+      <span class="badge">First</span>
+      <h3>Teleoperation Replay for XleRobot</h3>
+      <p>The first teleoperation record-and-replay system for the XleRobot embodiment. Keyboard teleop drives the robot while a capture pipeline logs joint states, and any recorded episode can be re-enacted deterministically on hardware.</p>
+    </div>
+    <div class="card">
+      <span class="badge">First</span>
+      <h3>Cloud π0.5 Pipeline</h3>
+      <p>The first cloud π0.5 pipeline for this embodiment: action-expert fine-tuning built entirely in Google Colab with checkpoint extraction, plus a RunPod (RTX 5090) inference setup for deployment.</p>
+    </div>
+    <div class="card">
+      <span class="badge">Dataset</span>
+      <h3>50-Episode Grasping Dataset</h3>
+      <p>50 teleoperated episodes of a block pick-up skill, collected on our own embodiment with the capture pipeline and used to fine-tune the π0.5 action expert (training curves below).</p>
+    </div>
+    <div class="card">
+      <span class="badge">Negative Result</span>
+      <h3>Cross-Embodiment Transfer Fails</h3>
+      <p>Fine-tuning on data from a similar embodiment with different motors did not produce a working policy, even after a custom joint mapping. In-distribution data proved necessary.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+<section id="how">
+  <h2>How It Works</h2>
+  <p>The system spans motor sensing, teleoperation and capture, replay, and a training and deployment pipeline.</p>
+
+  <div class="tech">
+    <h3>sts3215 · 12-bit Magnetic Encoder</h3>
+    <p>Each sts3215 servo has a built-in 12-bit magnetic encoder using two Hall elements (Bx, By) to read shaft angle. This gives accurate, repeatable joint sensing, the basis for faithful replay. Other servos can also be used on the arms, which matters for the cross-embodiment failure described below.</p>
+  </div>
+
+  <div class="tech">
+    <h3>Keyboard Teleoperation + Skill Capture</h3>
+    <p>We first tried Xbox controller teleoperation and abandoned it as imprecise and unintuitive. Keyboard teleop worked. A custom capture pipeline logs joint positions at each timestep during teleoperation, so every session doubles as dataset recording.</p>
+  </div>
+
+  <div class="tech">
+    <h3>Replay Enactment</h3>
+    <p>Recorded episodes are played back deterministically on the hardware by streaming the logged joint targets. This is the replay shown in the demo videos.</p>
+  </div>
+
+  <div class="tech">
+    <h3>π0.5 Fine-Tuning in Colab</h3>
+    <p>We built an action-expert fine-tuning pipeline for π0.5 entirely in Google Colab, ran 6+ hour training jobs, and extracted checkpoints throughout. The pipeline was used twice: first on the external dataset, then on our own.</p>
+  </div>
+
+  <div class="tech">
+    <h3>RunPod Deployment Infrastructure</h3>
+    <p>Inference runs on a RunPod RTX 5090 with a network volume for checkpoints. Observations stream to the pod and actions stream back to the robot. Upload speed for checkpoints and datasets was a recurring bottleneck.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ DEMOS ═══════════════ -->
+<section id="demos">
+  <h2>Demonstrations</h2>
+  <p>Video demonstrations of teleoperation and replay across all camera views.</p>
+
+  <h3 style="font-size:1.05em;font-weight:600;margin:28px 0 4px;">Teleoperation Replay Demo</h3>
+  <div class="vid-grid-3">
+    <div>
+      <div class="vid-wrap vid-wrap-vertical">
+        <video src="videos/left-hand.mp4" controls muted loop playsinline preload="metadata"
+               onerror="vidFail(this,'https://www.youtube.com/shorts/GUcvZSsIgko')"></video>
+      </div>
+      <p class="vid-caption">Left Hand</p>
+    </div>
+    <div>
+      <div class="vid-wrap vid-wrap-vertical">
+        <video src="videos/head.mp4" controls muted loop playsinline preload="metadata"
+               onerror="vidFail(this,'https://www.youtube.com/shorts/3Q42W2jr9sQ')"></video>
+      </div>
+      <p class="vid-caption">Head</p>
+    </div>
+    <div>
+      <div class="vid-wrap vid-wrap-vertical">
+        <video src="videos/right-hand.mp4" controls muted loop playsinline preload="metadata"
+               onerror="vidFail(this,'https://www.youtube.com/shorts/NwMrkJ8UuGk')"></video>
+      </div>
+      <p class="vid-caption">Right Hand</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TRAINING ═══════════════ -->
+<section id="training">
+  <h2>Training</h2>
+  <p>
+    After collecting the 50-episode block pick-up dataset, we fine-tuned the π0.5 action expert on it in Colab. The Weights &amp; Biases curves below show loss dropping from about 0.08 to under 0.02 over roughly 4,500 steps with stable gradient norms. This checkpoint is trained but not yet deployed (see Challenges).
+  </p>
+  <figure style="margin: 28px 0;">
+    <img src="images/training-loss.png"
+         alt="WandB training curves: param norm, loss, and grad norm over ~4500 steps"
+         style="width:100%; border-radius:8px; border:1px solid var(--border);">
+    <figcaption style="text-align:center; font-size:.82em; color:#999; margin-top:10px; font-style:italic;">
+      WandB training curves for the grasping task: train/param_norm, train/loss, train/grad_norm
+    </figcaption>
+  </figure>
+</section>
+
+
+<section id="challenges">
+  <h2>Challenges</h2>
+  <p>What did not work, in the order we hit it:</p>
+  <ul class="challenges">
+    <li>
+      <div class="cx">✕</div>
+      <div>
+        <strong>Cross-Embodiment π0.5 Deployment.</strong>&nbsp;
+        Our first deployment used π0.5 fine-tuned on an external dataset from a similar embodiment with different motors. It performed poorly. We built a custom joint mapping between the embodiments and it still failed. The most likely cause is the dataset itself: out of distribution for our robot. This failure motivated the pivot to collecting our own data.
+      </div>
+    </li>
+    <li>
+      <div class="cx">✕</div>
+      <div>
+        <strong>Cloud Infrastructure Friction.</strong>&nbsp;
+        The first RunPod instance hit a migration error and required recovery. The network volume backup preserved checkpoints but not configurations, so the environment had to be rebuilt. On top of that, upload speeds for checkpoints, models, and datasets consumed a large share of project time.
+      </div>
+    </li>
+    <li>
+      <div class="cx">✕</div>
+      <div>
+        <strong>Xbox Controller Teleoperation.</strong>&nbsp;
+        Abandoned. Controlling the arms with thumbsticks proved imprecise and unintuitive. We switched to keyboard teleoperation, which worked.
+      </div>
+    </li>
+    <li>
+      <div class="cx">✕</div>
+      <div>
+        <strong>Camera Hardware Failure.</strong>&nbsp;
+        The left camera's video feed died mid-session during data collection, with a faulty USB dock as the probable cause, costing additional diagnostic time.
+      </div>
+    </li>
+    <li>
+      <div class="cx">✕</div>
+      <div>
+        <strong>Deployment Budget.</strong>&nbsp;
+        This project was self-funded: over $700 on robot hardware and over $60 on RunPod. After the original pod was terminated, a fresh pod meant several hours of setup and roughly $50 more, past what we could personally spend. The fine-tuned checkpoint exists; the GPU time to evaluate it on hardware does not.
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- ═══════════════ FUTURE WORK ═══════════════ -->
+<section id="next">
+  <h2>Future Work</h2>
+  <p>The dataset is collected and the checkpoint is trained. The remaining steps are:</p>
+  <ol class="steps">
+    <li>
+      <div class="sn">1</div>
+      <div>
+        <strong>Deploy the fine-tuned checkpoint.</strong>&nbsp;
+        Stand up GPU inference (cloud or local) and run the newly trained action expert on the robot through the existing pipeline.
+      </div>
+    </li>
+    <li>
+      <div class="sn">2</div>
+      <div>
+        <strong>Evaluate on hardware.</strong>&nbsp;
+        Measure block pick-up success rate across repeated trials and compare against the failed cross-embodiment baseline.
+      </div>
+    </li>
+    <li>
+      <div class="sn">3</div>
+      <div>
+        <strong>VR teleoperation.</strong>&nbsp;
+        Replace keyboard control with a VR interface for more natural arm control and faster, higher quality demonstration collection.
+      </div>
+    </li>
+    <li>
+      <div class="sn">4</div>
+      <div>
+        <strong>Alternative fine-tuning methods.</strong>&nbsp;
+        Explore LoRA and other parameter-efficient approaches to reduce training cost and iterate on checkpoints faster.
+      </div>
+    </li>
+    <li>
+      <div class="sn">5</div>
+      <div>
+        <strong>Multi-zone navigation for problem solving.</strong>&nbsp;
+        Build on the spatial room mapping to navigate between zones, combining base movement with learned manipulation skills to complete tasks across the room.
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ═══════════════ CITATION ═══════════════ -->
+<section id="citation">
+  <h2>Citation</h2>
+  <p>If you find this work useful, please cite:</p>
+  <pre class="cite-box">@misc{ocampo2026roboticreplay,
+  title   = {Robotic Replay: Teleoperation Replay and Data Collection},
+  author  = {Ocampo, Cristian and Mohanty, Raj},
+  year    = {2026},
+  note    = {Project Report}
+}</pre>
+</section>
+
+</div><!-- /container -->
+
+<footer>
+  Cristian Ocampo &amp; Raj Mohanty &nbsp;·&nbsp; 2026 &nbsp;·&nbsp; Robotic Replay
+</footer>
+
+<script>
+// Scroll-reveal for sections
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('section').forEach(s => io.observe(s));
+
+// Fallback if a local video file is missing from the /videos folder
+function vidFail(v, yt) {
+  const wrap = v.parentElement;
+  wrap.innerHTML = '<div class="vid-missing"><span>⚠ Video file not found.<br>Place the .mp4 in the <code>videos/</code> folder next to index.html.</span><a href="' + yt + '" target="_blank">Watch on YouTube ↗</a></div>';
+}
+</script>
+</body>
+</html>

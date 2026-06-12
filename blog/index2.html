@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyond Codebooks: Continuous Latent Actions for Fine-Grained Video Dynamics</title>
+<style>
+:root{
+  --ink:#15202b; --muted:#5b6b7a; --line:#e3e8ee; --bg:#ffffff; --soft:#f6f8fa;
+  --ours:#0a7d3c; --ours-soft:#e7f6ec; --accent:#1763b6; --warn:#e0a800; --bad:#c0392b;
+}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color:var(--ink);margin:0;background:var(--bg);line-height:1.62;font-size:16.5px}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px 90px}
+header.hero{background:linear-gradient(135deg,#0c2233,#13405f 60%,#0a7d3c);color:#fff;padding:64px 22px 52px}
+header.hero .wrap{padding-bottom:0}
+h1{font-size:33px;line-height:1.2;margin:0 0 12px;letter-spacing:-0.5px}
+.subtitle{font-size:18px;color:#d7e6f2;font-weight:400;margin:0 0 22px;max-width:760px}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.badge{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;
+  padding:5px 12px;border-radius:999px;font-size:13px;text-decoration:none}
+.badge:hover{background:rgba(255,255,255,.26)}
+h2{font-size:25px;margin:52px 0 6px;letter-spacing:-0.3px}
+h3{font-size:19px;margin:30px 0 4px}
+h4{font-size:16px;margin:18px 0 4px;color:var(--accent)}
+.lead{color:var(--muted);font-size:16px;margin-top:2px}
+hr.sec{border:0;border-top:1px solid var(--line);margin:8px 0 0}
+p{margin:12px 0}
+code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13.5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.callout{background:var(--ours-soft);border:1px solid #bfe6cd;border-left:5px solid var(--ours);
+  border-radius:10px;padding:16px 20px;margin:22px 0}
+.callout.delta{background:#eef5fd;border-color:#cfe1f6;border-left-color:var(--accent)}
+.callout.warn{background:#fff8e6;border-color:#f0e0a8;border-left-color:var(--warn)}
+.callout h4{margin-top:0}
+ul{margin:10px 0;padding-left:22px}
+li{margin:5px 0}
+table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:center}
+th{background:var(--soft);font-weight:650}
+td.l,th.l{text-align:left}
+tr.ours td{background:var(--ours-soft);font-weight:600}
+.small{font-size:13px;color:var(--muted)}
+figure{margin:22px 0;text-align:center}
+figure svg{max-width:100%;height:auto}
+figure.motivation{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 12px 14px;text-align:left}
+figure.motivation img{width:100%;border-radius:7px;border:1px solid var(--line);display:block}
+figure.motivation figcaption{text-align:left}
+figure.diagram{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 10px;overflow-x:auto}
+figure.diagram svg{display:block;margin:0 auto;min-width:760px}
+.method-intros{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+.method-card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fff}
+.method-card h4{margin:0 0 6px;color:var(--ink)}
+.method-card p{font-size:14px;margin:6px 0}
+.method-card.ours{background:var(--ours-soft);border-color:#bfe6cd}
+.harness-diagram{text-align:left}
+.harness-band{background:#eef5fd;border:1px solid #cfe1f6;border-radius:8px;padding:10px 12px;text-align:center;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+.harness-note{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;margin:14px 6px;color:var(--muted)}
+.harness-row{display:grid;grid-template-columns:150px minmax(0,1.35fr) minmax(0,.9fr);gap:10px;align-items:center;
+  border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin:8px 0;background:#fff}
+.harness-row.ours{background:var(--ours-soft);border-color:#bfe6cd}
+.harness-name{font-weight:700;text-align:center}
+.harness-path,.harness-loss{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+.harness-loss{color:var(--muted)}
+.harness-row.ours .harness-name,.harness-row.ours .harness-loss{color:var(--ours)}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.grid4 img{width:100%;border-radius:6px;border:1px solid var(--line);display:block}
+.gridcap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.gridcap div{font-size:12px;color:var(--muted);text-align:center}
+.gtvid{margin:12px 0 0;text-align:center}
+.gtvid video{width:50%;max-width:260px;border-radius:6px;border:1px solid var(--line);display:block;margin:6px auto 0;background:#000}
+.gtvid figcaption{font-size:12px;color:var(--muted);margin-top:4px;text-align:center}
+.watch{font-size:13px;color:var(--muted);margin:14px 0 0;font-weight:600}
+@media(max-width:680px){.gtvid video{width:80%}}
+.fc{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:20px 0;background:#fff}
+.fc .tag{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:var(--bad);
+  border-radius:6px;padding:2px 9px;margin-right:8px}
+.fc .tag.ok{background:var(--ours)}
+.bar-row{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+.bar-track{background:var(--soft);border:1px solid var(--line);border-radius:6px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px 0 0 5px}
+.method-pill{font-weight:600}
+.legend{font-size:12.5px;color:var(--muted);margin:4px 0 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:680px){html,body{width:100%;max-width:100%;overflow-x:hidden}header.hero{overflow:hidden}h1{font-size:28px;overflow-wrap:break-word}
+  .subtitle,.badge{overflow-wrap:break-word}.badges{max-width:100%}
+  .two{grid-template-columns:1fr}.grid4,.gridcap{grid-template-columns:repeat(2,1fr)}
+  .bar-row{grid-template-columns:110px 1fr 56px}
+  .wrap{width:100vw;max-width:100vw;overflow-x:hidden}
+  table{display:block;max-width:100%;overflow-x:auto}
+  .method-intros{grid-template-columns:1fr}
+  .harness-row{grid-template-columns:1fr}
+  .harness-name{text-align:left}
+  figure.diagram{max-width:100%}
+  figure.diagram svg{max-width:none}}
+.toc{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:26px 0}
+.toc a{color:var(--accent);text-decoration:none;font-size:14.5px}
+.toc a:hover{text-decoration:underline}
+.toc ol{margin:6px 0;padding-left:20px}
+a{color:var(--accent)}
+.cite{font-weight:700;text-decoration:none;white-space:nowrap}
+.pub-list{list-style:none;margin:16px 0 0;padding:0}
+.pub-list li{margin:11px 0;padding-left:42px;text-indent:-42px}
+.pub-list .ref-num{font-weight:700;color:var(--accent);margin-right:8px}
+.eqn{background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;overflow-x:auto}
+.loss-eqn{display:block;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Beyond Codebooks: Continuous Latent Actions for Fine-Grained Video Dynamics</h1>
+    <p class="subtitle">A controlled re-implementation and head-to-head comparison of five latent-action
+      representations on Something-Something V2 &mdash; and a decoder-free way to measure which latent
+      actually captures <em>what changed</em> between two frames.</p>
+    <div class="badges">
+      <a class="badge" href="https://github.com/ucikrm/lapa_z_project" target="_blank">&#128279; Source code on GitHub</a>
+      <span class="badge">Something-Something V2</span>
+      <span class="badge">5 methods &middot; one harness</span>
+      <span class="badge">Qwen3-VL-8B progress scoring</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#obj">Project objective</a></li>
+    <li><a href="#method">Methodology</a>
+      <ol>
+        <li><a href="#m-models">The five methods (architectures, forward pass, loss, backprop)</a></li>
+        <li><a href="#m-data">Dataset</a></li>
+        <li><a href="#m-setup">Experimental setup</a></li>
+        <li><a href="#m-eval">Evaluation setup</a></li>
+        <li><a href="#m-vlm">Decoder-free VLM scoring</a></li>
+        <li><a href="#m-metrics">Evaluation metrics</a></li>
+      </ol></li>
+    <li><a href="#results">Results &amp; failure cases</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#refs">References</a></li>
+    <li><a href="#conc">Conclusion &amp; next steps</a></li>
+  </ol>
+</div>
+
+<div class="callout delta">
+  <h4>What is new here (the delta)</h4>
+  <ul>
+    <li><b>One apples-to-apples harness</b> for five latent-action families (LAPA <a class="cite" href="#ref-lapa">[1]</a>,
+      AdaWorld <a class="cite" href="#ref-adaworld">[2]</a>, UniVLA <a class="cite" href="#ref-univla">[3]</a>,
+      a villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a>, and our VICReg variant) trained on the same frame pairs, latent dimension, budget, and
+      decoder-free evaluation. The pixel-space methods share an encoder/decoder template; UniVLA is the
+      feature-space exception.</li>
+    <li><b>Decoder-free evaluation:</b> normally, you might judge a latent <code>z</code> by asking the model to
+      decode it into a future image, then checking whether that generated image shows the right action. But
+      our decoders are blurry, so bad decoded images may tell us more about decoder weakness than about whether
+      <code>z</code> understood the action. Instead, we use <code>z</code> to retrieve a <em>real</em> future
+      frame from the training bank, then ask TOPReward/Qwen3-VL-8B <a class="cite" href="#ref-topreward">[5]</a>
+      whether that real frame shows task progress.</li>
+    <li><b>Finding:</b> at this small 5k-clip training tier, VICReg produced the healthiest latent space and retrieved
+      the most task-relevant real future frames. In plain terms: VICReg's <code>z</code> seems better at
+      organizing &ldquo;what changed&rdquo; between frames.</li>
+  </ul>
+</div>
+
+<h2 id="obj">1. Project objective</h2>
+<hr class="sec">
+<p>A <b>latent action</b> <code>z</code> is a compact vector that should encode the transition between a
+current video frame <code>x<sub>t</sub></code> and a future frame <code>x<sub>t+H</sub></code> &mdash; intuitively,
+<em>what happened</em> (push left, lift up, cover with cloth) independent of background and appearance. These
+latents are the bridge in modern "latent action" pipelines: learn <code>z</code> from unlabeled video, then
+later train a policy to predict <code>z</code> from observations.</p>
+
+<figure class="motivation">
+  <img src="assets/figures/lapa_motivation.png" alt="LAPA latent action pretraining pipeline and motivation for studying codebook bottlenecks">
+  <figcaption><b>Why this project exists:</b> LAPA-style latent action pretraining <a class="cite" href="#ref-lapa">[1]</a> first quantizes frame-to-frame
+  changes into a discrete latent-action codebook, then uses those codes for downstream action learning. That
+  design is powerful, but it raises the central question studied here: can a small discrete codebook miss subtle
+  actions, collapse to a small subset of codes, or become a bottleneck compared with continuous latents?
+  Source: Ye et&nbsp;al. (2025), <em>Latent Action Pretraining from Videos</em>, ICLR 2025 <a class="cite" href="#ref-lapa">[1]</a>.</figcaption>
+</figure>
+
+<p>This project deliberately stops at <b>Phase&nbsp;1</b> &mdash; learning and rigorously evaluating <code>z</code>
+itself &mdash; and asks one focused question:</p>
+<div class="callout">
+  <b>Which latent-action representation best captures the task-relevant transition between a current frame and a
+  future frame, at a small (5k-clip) training tier on real human-object-interaction video?</b>
+</div>
+<p>We compare four published recipes <a class="cite" href="#ref-lapa">[1]</a> <a class="cite" href="#ref-adaworld">[2]</a> <a class="cite" href="#ref-univla">[3]</a> <a class="cite" href="#ref-villax">[4]</a>
+(re-implemented as comparable controlled proxies; the villa-X entry is video-only because STHV2 lacks robot proprioception and actions) against a continuous
+latent regularized with <b>VICReg</b> variance/covariance terms. The whole point is the controlled
+comparison and the honest measurement, not a giant new model.</p>
+
+<h2 id="method">2. Methodology</h2>
+<hr class="sec">
+
+<h3 id="m-models">2.1 The five methods</h3>
+<p>The comparison has two layers. The <b>experimental harness</b> is shared: same frame pairs, labels,
+latent dimension, optimizer budget, export format, and decoder-free retrieval evaluation. The
+<b>trainable model instance</b> is not shared: every method has its own encoder/decoder weights and receives
+gradients from its own loss.</p>
+
+<div class="callout delta">
+  <h4>What "common encoder/decoder" means</h4>
+  <p>For the pixel-space methods, "common" means the same module <em>architecture and interface</em>, not one
+  set of weights reused by all methods. LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a>, the villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a>,
+  and VICReg instantiate separate copies of <code>CommonEncoder</code> and <code>CommonDecoder</code>.
+  AdaWorld <a class="cite" href="#ref-adaworld">[2]</a> uses the same convolutional trunk but has
+  Variational Autoencoder (VAE) heads that predict <code>&mu;</code> and <code>log&sigma;&sup2;</code>. UniVLA <a class="cite" href="#ref-univla">[3]</a> is
+  deliberately different: it operates in frozen DINOv2 visual-feature space with T5 text features and predicts
+  future DINOv2 features instead of pixels.</p>
+</div>
+
+<h4>The five method families, in plain language</h4>
+<div class="method-intros">
+  <div class="method-card">
+    <h4>LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a></h4>
+    <p><b>LAPA</b> means a Latent Action Pretraining-style baseline: it tries to compress the change between two frames into a small action code. <b>NSVQ</b> means Noise-Substitution Vector Quantization, a discrete-code method that uses noise during training so gradients can still reach the encoder.</p>
+  </div>
+  <div class="method-card">
+    <h4>AdaWorld &beta;-VAE <a class="cite" href="#ref-adaworld">[2]</a></h4>
+    <p><b>AdaWorld</b> is represented here as a continuous latent baseline inspired by adaptive world-model training. <b>&beta;-VAE</b> means beta-weighted Variational Autoencoder: the encoder predicts a Gaussian latent distribution, and a Kullback-Leibler (KL) penalty keeps that distribution near a simple normal prior.</p>
+  </div>
+  <div class="method-card">
+    <h4>UniVLA DINO-VQ <a class="cite" href="#ref-univla">[3]</a></h4>
+    <p><b>VLA</b> stands for Vision-Language-Action, so UniVLA is the vision-language-action style baseline. Instead of reconstructing pixels, it uses frozen <b>DINOv2</b> visual features from a pretrained image model and <b>T5</b> (Text-to-Text Transfer Transformer) text features, then applies <b>VQ</b> (Vector Quantization) to learn a discrete action code.</p>
+  </div>
+  <div class="method-card">
+    <h4>villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a></h4>
+    <p><b>villa-X</b> learns discrete vector-quantized action tokens and, in the paper, grounds them with a <b>proprio-FDM</b> (proprioceptive Forward Dynamics Model) that predicts future robot proprioceptive states and low-level robot actions. Because Something-Something V2 has video but no robot state/action stream or embodiment context, this project uses a <b>visual-FDM proxy</b>: the auxiliary head predicts future Sobel edge structure instead. A Sobel edge map strips an image down to outlines and object boundaries; the proxy asks whether the current outlines plus <code>z</code> can predict where those outlines move next. Read the results as a villa-X-inspired proxy, not a full reproduction of the paper's proprioceptive grounding module.</p>
+  </div>
+  <div class="method-card ours">
+    <h4>VICReg (ours)</h4>
+    <p><b>VICReg</b> stands for Variance-Invariance-Covariance Regularization. In this project we use the variance and covariance parts to keep the continuous latent dimensions active and decorrelated, without a codebook or Gaussian sampling step.</p>
+  </div>
+</div>
+
+<figure class="diagram harness-diagram">
+  <div class="harness-band">
+    <b>Shared experimental harness</b><br>
+    Same Something-Something V2 frame pairs, labels, 32-d latent size, training budget, exported latents, retrieval evaluation, and Vision-Language Model scoring.
+  </div>
+  <div class="harness-note">
+    Each row is trained from scratch as a separate model instance. Same harness; different latent bottleneck, loss, and learned weights.
+  </div>
+  <div class="harness-row">
+    <div class="harness-name">LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a></div>
+    <div class="harness-path">encoder copy &rarr; Noise-Substitution Vector Quantization &rarr; decoder copy</div>
+    <div class="harness-loss">loss: pixel Mean Squared Error + commitment-to-code loss</div>
+  </div>
+  <div class="harness-row">
+    <div class="harness-name">AdaWorld &beta;-VAE <a class="cite" href="#ref-adaworld">[2]</a></div>
+    <div class="harness-path">VAE encoder heads &rarr; Gaussian sample z &rarr; decoder copy</div>
+    <div class="harness-loss">loss: pixel Mean Squared Error + beta-weighted Kullback-Leibler penalty</div>
+  </div>
+  <div class="harness-row">
+    <div class="harness-name">UniVLA DINO-VQ <a class="cite" href="#ref-univla">[3]</a></div>
+    <div class="harness-path">frozen DINOv2/T5 features &rarr; projection &rarr; Vector Quantization &rarr; feature decoder</div>
+    <div class="harness-loss">loss: DINOv2-feature Mean Squared Error + VQ losses</div>
+  </div>
+  <div class="harness-row">
+    <div class="harness-name">villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a></div>
+    <div class="harness-path">encoder copy &rarr; Vector Quantization &rarr; decoder copy + Sobel visual-FDM proxy</div>
+    <div class="harness-loss">proxy loss: pixel Mean Squared Error + Sobel proxy loss + VQ losses</div>
+  </div>
+  <div class="harness-row ours">
+    <div class="harness-name">VICReg (ours)</div>
+    <div class="harness-path">encoder copy &rarr; continuous z &rarr; decoder copy</div>
+    <div class="harness-loss">loss: pixel Mean Squared Error + variance + covariance regularization</div>
+  </div>
+<figcaption>The harness is shared, but the trained weights are separate. This is the control that lets us ask
+whether the latent objective itself changes the geometry of <code>z</code>.</figcaption>
+</figure>
+
+<figure class="diagram">
+<svg viewBox="0 0 980 360" xmlns="http://www.w3.org/2000/svg" font-family="Menlo,Consolas,monospace" font-size="12.5">
+  <defs>
+    <marker id="arrow-pixel" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 z" fill="#5b6b7a"/>
+    </marker>
+    <marker id="arrow-grad" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect x="24" y="95" width="128" height="68" rx="9" fill="#eef5fd" stroke="#cfe1f6"/>
+  <text x="88" y="123" text-anchor="middle" font-weight="bold">frame pair</text>
+  <text x="88" y="143" text-anchor="middle" fill="#5b6b7a">x_t, x_t+H</text>
+
+  <rect x="198" y="78" width="162" height="102" rx="10" fill="#f6f8fa" stroke="#e3e8ee"/>
+  <text x="279" y="111" text-anchor="middle" font-weight="bold">encoder copy</text>
+  <text x="279" y="132" text-anchor="middle" fill="#5b6b7a">common conv template</text>
+  <text x="279" y="151" text-anchor="middle" fill="#5b6b7a">separate weights</text>
+
+  <rect x="408" y="68" width="184" height="122" rx="12" fill="#e7f6ec" stroke="#0a7d3c" stroke-width="2"/>
+  <text x="500" y="98" text-anchor="middle" font-weight="bold">method-specific</text>
+  <text x="500" y="118" text-anchor="middle" font-weight="bold">latent module</text>
+  <text x="500" y="140" text-anchor="middle" fill="#0a7d3c">chosen by the method</text>
+  <text x="500" y="162" text-anchor="middle" fill="#5b6b7a">encoder output &rarr; z, 32-d</text>
+
+  <rect x="642" y="78" width="166" height="102" rx="10" fill="#f6f8fa" stroke="#e3e8ee"/>
+  <text x="725" y="111" text-anchor="middle" font-weight="bold">decoder copy</text>
+  <text x="725" y="132" text-anchor="middle" fill="#5b6b7a">trainable weights</text>
+  <text x="725" y="151" text-anchor="middle" fill="#5b6b7a">enc(x_t) + z &rarr; x&#770;_t+H</text>
+
+  <rect x="856" y="95" width="100" height="68" rx="9" fill="#eef5fd" stroke="#cfe1f6"/>
+  <text x="906" y="123" text-anchor="middle" font-weight="bold">output</text>
+  <text x="906" y="143" text-anchor="middle" fill="#5b6b7a">x&#770;_t+H</text>
+
+  <line x1="152" y1="129" x2="196" y2="129" stroke="#5b6b7a" marker-end="url(#arrow-pixel)"/>
+  <line x1="360" y1="129" x2="406" y2="129" stroke="#5b6b7a" marker-end="url(#arrow-pixel)"/>
+  <line x1="592" y1="129" x2="640" y2="129" stroke="#5b6b7a" marker-end="url(#arrow-pixel)"/>
+  <line x1="808" y1="129" x2="854" y2="129" stroke="#5b6b7a" marker-end="url(#arrow-pixel)"/>
+
+  <rect x="160" y="238" width="656" height="98" rx="10" fill="#fff8e6" stroke="#f0e0a8"/>
+  <text x="488" y="260" text-anchor="middle" font-weight="bold">training objective for method m</text>
+  <text x="488" y="283" text-anchor="middle">loss = future-frame error + latent/auxiliary loss</text>
+  <text x="488" y="306" text-anchor="middle" fill="#5b6b7a">Different scalar losses produce different gradients.</text>
+  <text x="488" y="326" text-anchor="middle" fill="#5b6b7a">Same-shaped modules learn different representations.</text>
+
+  <line x1="906" y1="163" x2="760" y2="236" stroke="#5b6b7a" marker-end="url(#arrow-pixel)"/>
+  <path d="M610,238 C650,210 725,210 725,182" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-grad)"/>
+  <path d="M488,238 C488,214 500,214 500,192" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-grad)"/>
+  <path d="M488,238 C420,210 292,210 279,182" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-grad)"/>
+
+  <rect x="24" y="225" width="108" height="114" rx="8" fill="#f6f8fa" stroke="#e3e8ee"/>
+  <text x="78" y="248" text-anchor="middle" font-weight="bold">m =</text>
+  <text x="78" y="270" text-anchor="middle" fill="#5b6b7a">LAPA</text>
+  <text x="78" y="289" text-anchor="middle" fill="#5b6b7a">AdaWorld</text>
+  <text x="78" y="308" text-anchor="middle" fill="#5b6b7a">villa-X proxy</text>
+  <text x="78" y="327" text-anchor="middle" fill="#0a7d3c">VICReg</text>
+</svg>
+<figcaption>Pixel-space training loop. The module template is common, but the subscript <code>m</code> is the key:
+every method owns its own encoder, decoder, and latent-module weights and sees its own loss.</figcaption>
+</figure>
+
+<h4>Method-specific latent modules and losses</h4>
+<table>
+  <tr><th class="l">Method</th><th class="l">Forward path</th><th class="l">Extra loss beyond reconstruction</th><th class="l">Gradient intuition</th></tr>
+  <tr>
+    <td class="l">LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a></td>
+    <td class="l"><code>CommonEncoder</code> &rarr; nearest 64-code vector; train-time NSVQ outputs differentiable noise-substituted <code>z</code>, eval uses exact <code>z_q</code>.</td>
+    <td class="l"><span class="loss-eqn">L<sub>extra</sub> = &beta;&middot;&Vert;z<sub>e</sub> &minus; sg[z<sub>q</sub>]&Vert;<sub>2</sub><sup>2</sup></span>
+      <span class="small">Commitment only, implemented as MSE; <code>&beta;=0.25</code>.</span></td>
+    <td class="l">Reconstruction and residual-norm gradients keep the encoder/codebook trainable while commitment pulls <code>z_e</code> toward its selected code.</td>
+  </tr>
+  <tr>
+    <td class="l">AdaWorld &beta;-VAE <a class="cite" href="#ref-adaworld">[2]</a></td>
+    <td class="l">Same conv trunk shape, but two heads produce <code>&mu;</code> and <code>log&sigma;&sup2;</code>; train samples <code>z=&mu;+&sigma;&epsilon;</code>, eval exports <code>&mu;</code>.</td>
+    <td class="l"><span class="loss-eqn">L<sub>extra</sub> = &beta;&middot;KL(N(&mu;,&sigma;<sup>2</sup>) &Vert; N(0,I))</span>
+      <span class="loss-eqn">= &beta;&middot;&frac12; E<sub>b</sub> &Sigma;<sub>j</sub>(&mu;<sub>bj</sub><sup>2</sup> + &sigma;<sub>bj</sub><sup>2</sup> &minus; log&sigma;<sub>bj</sub><sup>2</sup> &minus; 1)</span>
+      <span class="small"><code>&beta;=2e-4</code>.</span></td>
+    <td class="l">The reparameterization trick lets reconstruction gradients reach the Gaussian heads; KL gently pulls the latent toward a unit normal prior.</td>
+  </tr>
+  <tr>
+    <td class="l">UniVLA DINO-VQ <a class="cite" href="#ref-univla">[3]</a></td>
+    <td class="l">Frozen DINOv2 features from both frames + frozen T5 label embedding &rarr; projection &rarr; standard VQ &rarr; feature decoder.</td>
+    <td class="l"><span class="loss-eqn">L<sub>extra</sub> = &Vert;sg[z<sub>e</sub>] &minus; z<sub>q</sub>&Vert;<sub>2</sub><sup>2</sup> + &beta;&middot;&Vert;z<sub>e</sub> &minus; sg[z<sub>q</sub>]&Vert;<sub>2</sub><sup>2</sup></span>
+      <span class="small">Added to DINO-feature reconstruction; <code>&beta;=0.25</code>.</span></td>
+    <td class="l">DINOv2 and T5 stay frozen; gradients update only the projection, VQ codebook, and feature decoder.</td>
+  </tr>
+  <tr>
+    <td class="l">villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a></td>
+    <td class="l"><code>CommonEncoder</code> &rarr; standard VQ &rarr; <code>CommonDecoder</code>, plus a Sobel-edge visual-FDM proxy head. The paper's auxiliary target is proprioceptive robot state/action prediction; this dataset-only proxy replaces that unavailable signal.</td>
+    <td class="l"><span class="loss-eqn">L<sub>extra</sub> = &lambda;<sub>s</sub>&middot;MSE(s&#770;<sub>t+H</sub>, s<sub>t+H</sub>) + &Vert;sg[z<sub>e</sub>] &minus; z<sub>q</sub>&Vert;<sub>2</sub><sup>2</sup> + &beta;&middot;&Vert;z<sub>e</sub> &minus; sg[z<sub>q</sub>]&Vert;<sub>2</sub><sup>2</sup></span>
+      <span class="small">Sobel visual-FDM proxy; <code>&lambda;<sub>s</sub>=1</code>, <code>&beta;=0.25</code>.</span></td>
+    <td class="l">Straight-through VQ copies decoder gradients to <code>z_e</code>; the Sobel proxy adds pressure for <code>z</code> to explain where visible structure moves, but it is not the paper's proprio-FDM grounding signal.</td>
+  </tr>
+  <tr class="ours">
+    <td class="l">VICReg (ours)</td>
+    <td class="l"><code>CommonEncoder</code> &rarr; raw continuous <code>z</code> &rarr; <code>CommonDecoder</code>; no codebook, no sampling.</td>
+    <td class="l"><span class="loss-eqn">L<sub>extra</sub> = &lambda;<sub>v</sub>&middot;<span style="white-space:nowrap">1/d</span> &Sigma;<sub>j</sub> max(0, 1 &minus; std(z<sub>j</sub>)) + &lambda;<sub>c</sub>&middot;<span style="white-space:nowrap">1/d</span> &Sigma;<sub>i&ne;j</sub> Cov(z)<sub>ij</sub><sup>2</sup></span>
+      <span class="small">Batch statistics; <code>&lambda;<sub>v</sub>=1</code>, <code>&lambda;<sub>c</sub>=0.05</code>.</span></td>
+    <td class="l">Everything is differentiable; variance prevents dead dimensions and covariance discourages redundant dimensions.</td>
+  </tr>
+</table>
+
+<figure class="diagram">
+<svg viewBox="0 0 980 330" xmlns="http://www.w3.org/2000/svg" font-family="Menlo,Consolas,monospace" font-size="12.5">
+  <defs>
+    <marker id="arrow-uni" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 z" fill="#5b6b7a"/>
+    </marker>
+    <marker id="arrow-uni-grad" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L7,3 L0,6 z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect x="26" y="36" width="128" height="50" rx="8" fill="#eef5fd" stroke="#cfe1f6"/>
+  <text x="90" y="57" text-anchor="middle" font-weight="bold">x_t, x_t+H</text>
+  <text x="90" y="75" text-anchor="middle" fill="#5b6b7a">RGB frames</text>
+
+  <rect x="26" y="142" width="128" height="50" rx="8" fill="#eef5fd" stroke="#cfe1f6"/>
+  <text x="90" y="163" text-anchor="middle" font-weight="bold">label text</text>
+  <text x="90" y="181" text-anchor="middle" fill="#5b6b7a">task template</text>
+
+  <rect x="200" y="28" width="150" height="66" rx="9" fill="#f6f8fa" stroke="#e3e8ee"/>
+  <text x="275" y="53" text-anchor="middle" font-weight="bold">frozen DINOv2</text>
+  <text x="275" y="73" text-anchor="middle" fill="#5b6b7a">patch features</text>
+
+  <rect x="200" y="134" width="150" height="66" rx="9" fill="#f6f8fa" stroke="#e3e8ee"/>
+  <text x="275" y="159" text-anchor="middle" font-weight="bold">frozen T5</text>
+  <text x="275" y="179" text-anchor="middle" fill="#5b6b7a">text embedding</text>
+
+  <rect x="402" y="66" width="145" height="74" rx="9" fill="#fff" stroke="#e3e8ee"/>
+  <text x="474" y="91" text-anchor="middle" font-weight="bold">trainable</text>
+  <text x="474" y="111" text-anchor="middle">projection</text>
+  <text x="474" y="129" text-anchor="middle" fill="#5b6b7a">visual + text &rarr; z_e</text>
+
+  <rect x="590" y="66" width="130" height="74" rx="9" fill="#e7f6ec" stroke="#0a7d3c" stroke-width="2"/>
+  <text x="655" y="94" text-anchor="middle" font-weight="bold">standard VQ</text>
+  <text x="655" y="114" text-anchor="middle" fill="#0a7d3c">64-code z_q</text>
+
+  <rect x="770" y="66" width="160" height="74" rx="9" fill="#fff" stroke="#e3e8ee"/>
+  <text x="850" y="88" text-anchor="middle" font-weight="bold">trainable</text>
+  <text x="850" y="108" text-anchor="middle" font-weight="bold">feature decoder</text>
+  <text x="850" y="128" text-anchor="middle" fill="#5b6b7a">z_q + text &rarr; f&#770;_t+H</text>
+
+  <rect x="618" y="210" width="312" height="92" rx="9" fill="#fff8e6" stroke="#f0e0a8"/>
+  <text x="774" y="234" text-anchor="middle" font-weight="bold">UniVLA objective</text>
+  <text x="774" y="256" text-anchor="middle">MSE(f&#770;_t+H, DINO(x_t+H)) + VQ loss</text>
+  <text x="774" y="276" text-anchor="middle" fill="#5b6b7a">feature-space reconstruction</text>
+  <text x="774" y="294" text-anchor="middle" fill="#5b6b7a">not pixel reconstruction</text>
+
+  <line x1="154" y1="61" x2="198" y2="61" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="154" y1="167" x2="198" y2="167" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="350" y1="61" x2="400" y2="88" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="350" y1="167" x2="400" y2="119" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="547" y1="103" x2="588" y2="103" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="720" y1="103" x2="768" y2="103" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <line x1="850" y1="140" x2="805" y2="208" stroke="#5b6b7a" marker-end="url(#arrow-uni)"/>
+  <path d="M870,210 C900,178 882,162 850,142" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-uni-grad)"/>
+  <path d="M774,210 C760,170 655,170 655,142" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-uni-grad)"/>
+  <path d="M774,210 C720,162 500,170 474,142" fill="none" stroke="#c0392b" stroke-dasharray="5,4" marker-end="url(#arrow-uni-grad)"/>
+
+  <text x="40" y="255" fill="#5b6b7a">Frozen modules provide features only.</text>
+  <text x="40" y="276" fill="#5b6b7a">Only projection, VQ, and feature decoder learn.</text>
+</svg>
+<figcaption>UniVLA <a class="cite" href="#ref-univla">[3]</a> is shown separately because it is a feature-space proxy: it uses frozen DINOv2/T5
+representations and does not share the pixel decoder used by LAPA-NSVQ, AdaWorld, the villa-X proxy, and VICReg.</figcaption>
+</figure>
+
+<h3 id="m-data">2.2 Dataset</h3>
+<p>We use <b>Something-Something V2 (STHV2)</b>, ~220k short clips of humans performing 174 templated
+manipulation actions (e.g. <em>"Pushing&nbsp;[something]&nbsp;from left to right"</em>). It is ideal here
+because the <em>template</em> is a clean, action-centric label of the transition &mdash; exactly what a latent
+action should capture &mdash; while object/background vary widely.</p>
+<ul>
+  <li>From each clip we sample a frame pair <code>(x<sub>t</sub>, x<sub>t+H</sub>)</code> with a fixed gap of
+    <code>H=12</code> frames (deterministic center sampling for export/eval, random during training).</li>
+  <li><b>Splits</b> (this tier): <b>5,000</b> train clips, <b>1,000</b> validation, <b>1,000</b> test
+    (disjoint videos &mdash; verified no <code>video_id</code> overlap between the retrieval bank and queries).</li>
+  <li>Frames are resized to 224&times;224, RGB, scaled to [0,1].</li>
+</ul>
+
+<h3 id="m-setup">2.3 Experimental setup</h3>
+<table>
+  <tr><th class="l">Setting</th><th class="l">Value</th></tr>
+  <tr><td class="l">Latent dim</td><td class="l">32 (all methods)</td></tr>
+  <tr><td class="l">Codebook size (discrete)</td><td class="l">64 codes</td></tr>
+  <tr><td class="l">Training steps</td><td class="l">5,000 (90-min wall-clock cap per method)</td></tr>
+  <tr><td class="l">Batch size</td><td class="l">64 (needed for stable VICReg/covariance statistics)</td></tr>
+  <tr><td class="l">Precision</td><td class="l">bf16 mixed precision</td></tr>
+  <tr><td class="l">Hardware</td><td class="l">2&times;24&nbsp;GB GPUs (training parallelized across methods)</td></tr>
+  <tr><td class="l">Frozen backbones</td><td class="l">DINOv2-Base + T5-small (UniVLA only)</td></tr>
+  <tr><td class="l">VLM scorer</td><td class="l">Qwen3-VL-8B-Instruct with TOPReward-style True/False scoring <a class="cite" href="#ref-topreward">[5]</a> in an isolated <code>.venv_vlm</code></td></tr>
+</table>
+<p class="small">All methods share the same latent dim, optimizer schedule, data, budget, and evaluation
+pipeline. The pixel-space models share the same encoder/decoder template where appropriate, but they are
+separate trained instances; UniVLA is the frozen-feature-space exception. The <code>β</code> for VQ commitment
+was decoupled from the VAE <code>β</code> so each is set correctly.</p>
+
+<h3 id="m-eval">2.4 Evaluation setup</h3>
+<p>We evaluate <code>z</code> in three complementary regimes:</p>
+<ol>
+  <li><b>Latent geometry &amp; codebook health</b> &mdash; intrinsic statistics of the exported test latents
+    (no labels needed): is the latent space full-rank and well-used, or collapsed?</li>
+  <li><b>Semantic probing</b> &mdash; can a simple linear probe / kNN recover the action template from
+    <code>z</code>? (An upper-bound-free check of how much task semantics is linearly accessible.)</li>
+  <li><b>Decoder-free retrieval + VLM progress</b> (our main contribution) &mdash; standardize <code>z</code> by
+    the train bank's mean/std, do cosine nearest-neighbor retrieval from each of the 1,000 test queries into
+    the 5,000-clip train bank, then fetch the retrieved clip's <em>real</em> future frame and ask a VLM
+    (TOPReward / Qwen3-VL-8B <a class="cite" href="#ref-topreward">[5]</a>) how much task progress it shows for the query instruction. Because we score
+    <em>real</em> frames, the metric reflects <code>z</code> quality, not decoder quality. The protocol is
+    identical for all five methods, with uniform-random and wrong-template controls.</li>
+</ol>
+<div class="callout warn">
+  <h4>Why a decoder-free metric?</h4>
+  When we scored <em>decoded</em> future frames with the same VLM, every pixel decoder scored near zero
+  (progress ≈ 0.065, real-minus-decoded gap ≈ 0.78). Here, "90-minute" means each full method &mdash; including
+  its encoder, latent module, and decoder &mdash; was trained under the same 90-minute wall-clock budget. Under
+  that limited budget, the learned pixel decoders still produced blurry future frames, so the VLM could not
+  reliably read task progress from them. That is a <b>decoder bottleneck</b>, not a <code>z</code> failure &mdash;
+  so headlining decoded scores would be misleading. Retrieving real frames by <code>z</code> removes the decoder
+  from the loop.
+</div>
+
+<h3 id="m-vlm">2.5 Decoder-free VLM scoring</h3>
+<p>The core trick is to use <code>z</code> as a <b>retrieval key</b> instead of asking the decoder to draw a
+future image. For each test query, we find the nearest training example in standardized, L2-normalized
+<code>z</code>-space, then score that training example's <em>real</em> future frame. This asks whether the
+latent representation retrieves the right kind of action, without letting blurry generated pixels dominate the
+evaluation.</p>
+<ol>
+  <li><b>Build a train bank:</b> export one latent <code>z</code> and one real future frame for every training
+    clip.</li>
+  <li><b>Retrieve by latent similarity:</b> compute the test clip's <code>z</code>, find its nearest train-bank
+    neighbor by cosine similarity, and use that neighbor's real future frame as the candidate image.</li>
+  <li><b>Ask TOPReward/Qwen3-VL <a class="cite" href="#ref-topreward">[5]</a>:</b> show the VLM the query current frame, the candidate future frame, and the
+    query instruction, then ask: "Compared to the first frame, does the last frame show this task being
+    completed or making clear visual progress? Answer True or False."</li>
+  <li><b>Turn the answer into a score:</b> read the model's first-token probability for <code>True</code> and
+    <code>False</code>, then compute
+    <span class="eqn">progress = P(True) / (P(True) + P(False))</span>
+    A score near 1 means the VLM is confident the future shows progress; near 0 means it does not.</li>
+</ol>
+<p>We also score a random future and a wrong-template future for the same query. The headline VLM quantity is
+often <b>lift over random</b>: if the retrieved future scores 0.16 and a random future scores 0.03, the lift is
+<code>+0.13</code>. Positive lift means the latent is retrieving future frames that look more task-relevant than
+chance.</p>
+
+<h3 id="m-metrics">2.6 Evaluation metrics</h3>
+<table>
+  <tr><th class="l">Metric</th><th class="l">Intuitive definition + toy example</th></tr>
+  <tr>
+    <td class="l">Effective rank / participation ratio</td>
+    <td class="l">Asks whether the 32-d latent actually uses many independent directions, or collapses into only a few. <b>Toy example:</b> if every video change only moves along one hidden axis, the effective rank is near 1; if different changes spread across 20+ axes, the rank is high. Participation ratio is a complementary "how many dimensions carry substantial energy?" version of the same collapse check.</td>
+  </tr>
+  <tr>
+    <td class="l">Correlation off-diagonal</td>
+    <td class="l">Asks whether latent dimensions are redundant after normalizing away scale. Lower is better. <b>Toy example:</b> if dimension 2 almost always copies dimension 1, they are highly correlated and the score rises; if one dimension tracks vertical motion while another tracks object contact, the score falls.</td>
+  </tr>
+  <tr>
+    <td class="l">Code perplexity / dead-code %</td>
+    <td class="l">Discrete-only codebook health. Perplexity is the effective number of codes being used; dead-code % is the fraction of the 64 codes never selected. <b>Toy example:</b> if a 64-code model uses only 4 codes equally often, perplexity is about 4 and most codes are dead; if it uses 50 codes often, the codebook is much healthier.</td>
+  </tr>
+  <tr>
+    <td class="l">Linear top-1 / top-5 probe acc.</td>
+    <td class="l">Trains a simple logistic-regression classifier on <code>z</code> to predict the action template. This checks whether template information is easy to read from the latent. The current exported test set contains 105 templates, so chance is roughly 1/105 for top-1 before accounting for imbalance, not exactly 1/174. <b>Toy example:</b> if the true label is "pushing left to right" and the classifier's first guess is correct, top-1 gets credit; if it appears anywhere in the classifier's five best guesses, top-5 gets credit.</td>
+  </tr>
+  <tr>
+    <td class="l">kNN same-template rate</td>
+    <td class="l">Within the exported test set, find each sample's 5 nearest non-self neighbors in raw <code>z</code>-space and ask how many share its template. <b>Toy example:</b> if a query's five nearest test latents include three "pushing left to right" examples and two unrelated actions, that query contributes 3/5 = 60%.</td>
+  </tr>
+  <tr>
+    <td class="l">Top-1 / top-5-mean same-template (retrieval)</td>
+    <td class="l">Decoder-free train-bank retrieval. We standardize <code>z</code> using the train bank's mean/std, L2-normalize, retrieve nearest train examples for each test query, and check whether their templates match the query. <b>Toy example:</b> if the closest train neighbor has the correct template, top-1 is 1 for that query; if 2 of the top 5 neighbors match, top-5-mean is 2/5 = 40%. This is not hit@5.</td>
+  </tr>
+  <tr>
+    <td class="l">Template-MRR</td>
+    <td class="l">Mean reciprocal rank of the first correct-template train neighbor within the retained retrieval buffer. Earlier correct matches count much more. <b>Toy example:</b> first correct neighbor at rank 1 gives 1.0; rank 4 gives 1/4 = 0.25; no correct neighbor in the buffer gives 0.</td>
+  </tr>
+  <tr>
+    <td class="l">VLM progress (NN-1)</td>
+    <td class="l">The TOPReward/Qwen3-VL progress score <a class="cite" href="#ref-topreward">[5]</a> for the single nearest train-bank future frame retrieved by <code>z</code>. It asks: "Given the query's current frame and instruction, does the top-1 retrieved real future look like progress on that task?" <b>Toy example:</b> for "pushing left to right," if the nearest retrieved future shows the object moved right, the score may be high (e.g. 0.16); if it shows an unrelated action, the score may be low (e.g. 0.03).</td>
+  </tr>
+  <tr>
+    <td class="l">TOPReward lift over random</td>
+    <td class="l">Asks whether the real future frame retrieved by <code>z</code> looks like more task progress than a random real future frame, according to TOPReward/Qwen3-VL <a class="cite" href="#ref-topreward">[5]</a>. <b>Toy example:</b> if the VLM scores the retrieved future 0.16 and a random future 0.03 for the same query instruction, the lift is +0.13. The CI is a bootstrap confidence interval over query-level differences.</td>
+  </tr>
+  <tr>
+    <td class="l">Wrong-template contrast</td>
+    <td class="l">Asks whether the retrieved future is action-specific, not just any plausible future frame. We compare the TOPReward score <a class="cite" href="#ref-topreward">[5]</a> of the <code>z</code>-retrieved real future to a control real future sampled from a different template, both judged against the query's instruction. <b>Toy example:</b> for "lifting up," if the <code>z</code>-retrieved future scores 0.16 and the different-template control scores 0.06, the contrast is +0.10.</td>
+  </tr>
+</table>
+
+<h2 id="results">3. Results &amp; failure cases</h2>
+<hr class="sec">
+
+<h4>Latent geometry &mdash; VICReg uses the space; discrete codes stay narrow</h4>
+<div class="legend">Effective rank (out of 32 &mdash; higher is better)</div>
+<div>
+  <div class="bar-row"><span class="method-pill" style="color:var(--ours)">VICReg (ours)</span><div class="bar-track"><div class="bar-fill" style="width:74.8%;background:#0a7d3c"></div></div><span>23.93</span></div>
+  <div class="bar-row"><span class="method-pill">UniVLA</span><div class="bar-track"><div class="bar-fill" style="width:45.7%;background:#1763b6"></div></div><span>14.63</span></div>
+  <div class="bar-row"><span class="method-pill">AdaWorld</span><div class="bar-track"><div class="bar-fill" style="width:33.4%;background:#1763b6"></div></div><span>10.70</span></div>
+  <div class="bar-row"><span class="method-pill">LAPA-NSVQ</span><div class="bar-track"><div class="bar-fill" style="width:21.7%;background:#1763b6"></div></div><span>6.94</span></div>
+  <div class="bar-row"><span class="method-pill">villa-X proxy</span><div class="bar-track"><div class="bar-fill" style="width:16.1%;background:#1763b6"></div></div><span>5.14</span></div>
+</div>
+
+<table>
+  <tr><th class="l">Method</th><th>Eff. rank &uarr;</th><th>Part. ratio &uarr;</th><th>Corr off-diag &darr;</th><th>Code perplexity &uarr;</th><th>Dead codes &darr;</th><th>Linear top-5 &uarr;</th></tr>
+  <tr><td class="l">LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a></td><td>6.94</td><td>3.62</td><td>0.485</td><td>45.0</td><td>1.6%</td><td>15.0%</td></tr>
+  <tr><td class="l">AdaWorld &beta;-VAE <a class="cite" href="#ref-adaworld">[2]</a></td><td>10.70</td><td>5.47</td><td>0.470</td><td>n/a</td><td>n/a</td><td>12.0%</td></tr>
+  <tr><td class="l">UniVLA DINO-VQ <a class="cite" href="#ref-univla">[3]</a></td><td>14.63</td><td>9.71</td><td>0.261</td><td>17.8</td><td>67.2%</td><td><b>19.5%</b></td></tr>
+  <tr><td class="l">villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a></td><td>5.14</td><td>2.67</td><td>0.576</td><td>51.2</td><td>0.0%</td><td>15.5%</td></tr>
+  <tr class="ours"><td class="l">VICReg (ours)</td><td>23.93</td><td>18.69</td><td>0.147</td><td>n/a</td><td>n/a</td><td style="font-weight:400">15.5%</td></tr>
+</table>
+<h4>Decoder-free retrieval + VLM &mdash; the headline result</h4>
+<p>Identical protocol for all methods; random same-template baseline = <b>1.32%</b>. Shared VLM references:
+real future progress <b>0.83</b>, no-change <b>0.38</b>, random future <b>0.03</b>, wrong-template <b>0.06</b>
+(scorer sanity: real &gt; no-change in 95% of clips).</p>
+<table>
+  <tr><th class="l">Method</th><th>Top-1 same-tmpl &uarr;</th><th>Top-5 mean &uarr;</th><th>Template-MRR &uarr;</th><th>VLM progress (NN-1) &uarr;</th><th>Lift over random (95% CI) &uarr;</th><th>Wrong-tmpl contrast &uarr;</th></tr>
+  <tr><td class="l">LAPA-NSVQ <a class="cite" href="#ref-lapa">[1]</a></td><td>1.7%</td><td>1.8%</td><td>0.065</td><td>0.033</td><td>+0.005 [&minus;0.025, 0.031]</td><td>&minus;0.026</td></tr>
+  <tr><td class="l">AdaWorld &beta;-VAE <a class="cite" href="#ref-adaworld">[2]</a></td><td>5.0%</td><td>2.9%</td><td>0.098</td><td>0.064</td><td>+0.036 [&minus;0.002, 0.076]</td><td>+0.005</td></tr>
+  <tr><td class="l">UniVLA DINO-VQ <a class="cite" href="#ref-univla">[3]</a></td><td>2.4%</td><td>1.8%</td><td>0.066</td><td>0.058</td><td>+0.030 [0.002, 0.061]</td><td>&minus;0.001</td></tr>
+  <tr><td class="l">villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a></td><td>1.9%</td><td>1.9%</td><td>0.067</td><td>0.035</td><td>+0.006 [&minus;0.020, 0.029]</td><td>&minus;0.025</td></tr>
+  <tr class="ours"><td class="l">VICReg (ours)</td><td>6.3%</td><td>3.4%</td><td>0.110</td><td>0.156</td><td>+0.127 [0.067, 0.190]</td><td>+0.096</td></tr>
+</table>
+<div class="legend">VLM progress lift over random (higher is better)</div>
+<div>
+  <div class="bar-row"><span class="method-pill" style="color:var(--ours)">VICReg (ours)</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:#0a7d3c"></div></div><span>+0.127</span></div>
+  <div class="bar-row"><span class="method-pill">AdaWorld</span><div class="bar-track"><div class="bar-fill" style="width:28.3%;background:#1763b6"></div></div><span>+0.036</span></div>
+  <div class="bar-row"><span class="method-pill">UniVLA</span><div class="bar-track"><div class="bar-fill" style="width:23.6%;background:#1763b6"></div></div><span>+0.030</span></div>
+  <div class="bar-row"><span class="method-pill">villa-X proxy</span><div class="bar-track"><div class="bar-fill" style="width:4.7%;background:#9aa7b3"></div></div><span>+0.006</span></div>
+  <div class="bar-row"><span class="method-pill">LAPA-NSVQ</span><div class="bar-track"><div class="bar-fill" style="width:3.9%;background:#9aa7b3"></div></div><span>+0.005</span></div>
+</div>
+<p>VICReg is the <b>only</b> method with a statistically significant VLM progress lift and a clearly positive
+wrong-template contrast: the futures it retrieves are read by the VLM as substantially more task-relevant than
+both random and wrong-action futures.</p>
+
+<h4>Failure cases &mdash; one strong example per baseline vs. ours</h4>
+<p>Each panel shows a test query (current frame &rarr; true future), then the <em>real</em> future frame each
+method retrieves via its own <code>z</code>. In every case <b>VICReg retrieves the correct action template</b>
+while the baseline drifts to a different action. (These are real retrieved frames, so what you see is
+literally what each latent "thinks" comes next.)</p>
+
+<div class="fc">
+  <p><span class="tag">LAPA-NSVQ fails</span><span class="tag ok">VICReg correct</span>
+  &nbsp;Instruction: <b>"pushing bottle from left to right"</b></p>
+  <div class="grid4">
+    <img src="assets/failures/lapa_nsvq/xt.png" alt="query frame">
+    <img src="assets/failures/lapa_nsvq/real_future.png" alt="true future">
+    <img src="assets/failures/lapa_nsvq/vicreg_nn0.png" alt="VICReg retrieval">
+    <img src="assets/failures/lapa_nsvq/baseline_nn0.png" alt="LAPA retrieval">
+  </div>
+  <div class="gridcap"><div>query x_t</div><div>true future</div><div>VICReg &rarr; "Pushing&nbsp;L&rarr;R" &#10003;</div><div>LAPA &rarr; "almost falls off" &#10007;</div></div>
+  <p class="small">VICReg's nearest future is the same "push left&rarr;right" action (VLM progress 0.99);
+  LAPA's discrete code lands on a different push variant (progress 0.00).</p>
+  <figure class="gtvid"><video controls preload="metadata" playsinline src="assets/failures/lapa_nsvq/query.webm"></video>
+    <figcaption>Ground-truth query clip &mdash; press play to watch the full action.</figcaption></figure>
+</div>
+
+<div class="fc">
+  <p><span class="tag">AdaWorld fails</span><span class="tag ok">VICReg correct</span>
+  &nbsp;Instruction: <b>"throwing tissue"</b></p>
+  <div class="grid4">
+    <img src="assets/failures/adaworld_bvae/xt.png" alt="query frame">
+    <img src="assets/failures/adaworld_bvae/real_future.png" alt="true future">
+    <img src="assets/failures/adaworld_bvae/vicreg_nn0.png" alt="VICReg retrieval">
+    <img src="assets/failures/adaworld_bvae/baseline_nn0.png" alt="AdaWorld retrieval">
+  </div>
+  <div class="gridcap"><div>query x_t</div><div>true future</div><div>VICReg &rarr; "Throwing tissue" &#10003;</div><div>AdaWorld &rarr; "Dropping next to" &#10007;</div></div>
+  <p class="small">VICReg retrieves the same action clip (exact label match: tissue on tiled floor); AdaWorld
+  drifts to a different action (dropping near a bowl on a table).</p>
+  <figure class="gtvid"><video controls preload="metadata" playsinline src="assets/failures/adaworld_bvae/query.webm"></video>
+    <figcaption>Ground-truth query clip &mdash; press play to watch the full action.</figcaption></figure>
+</div>
+
+<div class="fc">
+  <p><span class="tag">UniVLA fails</span><span class="tag ok">VICReg correct</span>
+  &nbsp;Instruction: <b>"covering bottle with paper"</b></p>
+  <div class="grid4">
+    <img src="assets/failures/univla_dino_vq/xt.png" alt="query frame">
+    <img src="assets/failures/univla_dino_vq/real_future.png" alt="true future">
+    <img src="assets/failures/univla_dino_vq/vicreg_nn0.png" alt="VICReg retrieval">
+    <img src="assets/failures/univla_dino_vq/baseline_nn0.png" alt="UniVLA retrieval">
+  </div>
+  <div class="gridcap"><div>query x_t</div><div>true future</div><div>VICReg &rarr; "Covering with" &#10003;</div><div>UniVLA &rarr; "Putting on a surface" &#10007;</div></div>
+  <p class="small">VICReg retrieves a "covering" action; UniVLA's DINO/VQ code drifts to a generic
+  "putting on a surface" clip (wrong template).</p>
+  <figure class="gtvid"><video controls preload="metadata" playsinline src="assets/failures/univla_dino_vq/query.webm"></video>
+    <figcaption>Ground-truth query clip &mdash; press play to watch the full action.</figcaption></figure>
+</div>
+
+<div class="fc">
+  <p><span class="tag">villa-X proxy fails</span><span class="tag ok">VICReg correct</span>
+  &nbsp;Instruction: <b>"lifting pencil up completely without letting it drop down"</b></p>
+  <div class="grid4">
+    <img src="assets/failures/villax_proxy/xt.png" alt="query frame">
+    <img src="assets/failures/villax_proxy/real_future.png" alt="true future">
+    <img src="assets/failures/villax_proxy/vicreg_nn0.png" alt="VICReg retrieval">
+    <img src="assets/failures/villax_proxy/baseline_nn0.png" alt="villa-X proxy retrieval">
+  </div>
+  <div class="gridcap"><div>query x_t</div><div>true future</div><div>VICReg &rarr; "Lifting pencil up" &#10003;</div><div>villa-X proxy &rarr; "Pushing / falls off" &#10007;</div></div>
+  <p class="small">VICReg retrieves the same action clip (exact label match: green pencil lifted over the mat);
+  the villa-X visual-FDM proxy drifts to a push/fall-off action on a different scene.</p>
+  <figure class="gtvid"><video controls preload="metadata" playsinline src="assets/failures/villax_proxy/query.webm"></video>
+    <figcaption>Ground-truth query clip &mdash; press play to watch the full action.</figcaption></figure>
+</div>
+
+<h2 id="limits">4. Limitations</h2>
+<hr class="sec">
+<ul>
+  <li><b>Small scale and single-run evidence.</b> 5,000 clips and a 90-minute budget per method. Absolute
+    numbers are low, and the trends come from this 5k-clip training tier rather than a multi-seed sweep. They are
+    informative diagnostics, not final rankings of the original papers.</li>
+  <li><b>Controlled proxies, not the full papers.</b> All published baselines are re-implemented inside one
+    small, shared harness rather than reproduced as the authors' full systems. UniVLA <a class="cite" href="#ref-univla">[3]</a>
+    and the villa-X visual-FDM proxy <a class="cite" href="#ref-villax">[4]</a> are especially proxy-like here: UniVLA is reduced to a
+    DINO/T5 feature-space latent model, and villa-X's paper uses a proprio-FDM to predict future robot
+    proprioceptive states and low-level actions with embodiment context. Our STHV2 version lacks those signals
+    and substitutes a Sobel-edge visual-FDM proxy.</li>
+  <li><b>Semantics still weak.</b> Top-1 direct template probes remain low for every method. Top-5 and
+    retrieval metrics show weak signal, but no method demonstrates strong, linearly-accessible action semantics
+    at this tier.</li>
+  <li><b>Decoder bottleneck.</b> Under the 90-minute full-method training budget, the learned pixel decoders
+    remain too blurry for decoded-frame VLM scoring; that is precisely why we built the retrieval-based metric.</li>
+  <li><b>Retrieval-bank coverage.</b> Decoder-free retrieval can only choose from the 5,000 real futures in the
+    train bank. If the bank lacks a close analogue for a test query, even a useful <code>z</code> may retrieve an
+    imperfect future.</li>
+  <li><b>Cross-video retrieval confound.</b> Retrieved futures come from <em>other</em> videos, so absolute VLM
+    progress is low; we therefore headline <em>lift-over-random</em> and <em>wrong-template contrast</em> (both
+    apples-to-apples) rather than retention-vs-no-change.</li>
+  <li><b>No downstream policy yet.</b> This page evaluates latent geometry, template retrieval, and VLM progress,
+    not whether a downstream robot or video-policy model trained to predict <code>z</code> performs better.</li>
+  <li><b>VLM-as-judge.</b> Progress scores depend on Qwen3-VL-8B / TOPReward <a class="cite" href="#ref-topreward">[5]</a>;
+    we validated the scorer in-domain before using it as a judge. For real STHV2 clips, we sampled chronological
+    frames and checked whether the VLM's progress scores increased in the same order as the video advanced. The
+    median value-order correlation was 0.81, meaning the scorer usually ranked later, more-complete frames above
+    earlier frames; it is a correlation, not an 81% accuracy. This follows the value-judgment framing in GVL
+    <a class="cite" href="#ref-gvl">[6]</a>, but it is still a model, not ground truth.</li>
+</ul>
+
+<h2 id="refs">5. References</h2>
+<hr class="sec">
+<p>The latent-action baselines and VLM scoring/validation references are cited below.</p>
+<ol class="pub-list">
+  <li id="ref-lapa"><span class="ref-num">[1]</span> Ye et&nbsp;al. (2025), <em>Latent Action Pretraining from Videos</em>, ICLR 2025.</li>
+  <li id="ref-adaworld"><span class="ref-num">[2]</span> Gao et&nbsp;al. (2025), <em>AdaWorld: Learning Adaptable World Models with Latent Actions</em>, ICML 2025 / PMLR.</li>
+  <li id="ref-univla"><span class="ref-num">[3]</span> Bu et&nbsp;al. (2025), <em>Learning to Act Anywhere with Task-centric Latent Actions</em>, arXiv:2505.06111.</li>
+  <li id="ref-villax"><span class="ref-num">[4]</span> Chen et&nbsp;al. (2025), <em>villa-X: Enhancing Latent Action Modeling in Vision-Language-Action Models</em>.</li>
+  <li id="ref-topreward"><span class="ref-num">[5]</span> Chen et&nbsp;al. (2026), <em>TOPReward: Token Probabilities as Hidden Zero-Shot Rewards for Robotics</em>, Preprint.</li>
+  <li id="ref-gvl"><span class="ref-num">[6]</span> Ma et&nbsp;al. (2025), <em>Vision Language Models are In-Context Value Learners</em>, ICLR 2025.</li>
+</ol>
+
+<h2 id="conc">6. Conclusion &amp; next steps</h2>
+<hr class="sec">
+<div class="callout">
+  <b>Takeaway:</b> with the playing field leveled (same data, same budget, same evaluation protocol) and measured
+  with a decoder-free metric, a <b>continuous VICReg latent gives the best latent geometry and the strongest
+  decoder-free retrieval signal</b> at the 5k-clip training tier &mdash; while no method yet solves direct semantic
+  probing. The contribution is the controlled comparison and the decoder-free evaluation method, not a new
+  giant model.
+</div>
+<p><b>What this controlled study adds:</b> a unified five-method latent-action harness; a
+validated decoder-free retrieval + TOPReward/Qwen3-VL progress evaluation <a class="cite" href="#ref-topreward">[5]</a>;
+and a small-scale result showing that VICReg's <code>z</code> organizes frame-to-frame change best among these
+methods at the 5k-clip training tier.</p>
+<h4>Next steps</h4>
+<ul>
+  <li>Scale the train bank (25k&ndash;100k clips) and lengthen training to test whether VICReg's lead holds and
+    whether semantic probes rise above chance.</li>
+  <li>Add stricter retrieval checks: compare each method against a random clip with the same action label, and
+    for VQ methods, test whether the learned code ID itself retrieves useful neighbors.</li>
+  <li>Replace the lightweight pixel decoder with a stronger one (or a latent-diffusion head) to make
+    decoded-frame VLM scoring viable as a second axis.</li>
+  <li>Phase 2: train a downstream policy to predict <code>z</code> and measure whether better
+    latent geometry/retrieval translates into better control.</li>
+</ul>
+
+<p style="margin-top:40px"><a href="https://github.com/ucikrm/lapa_z_project" target="_blank">&#128279; Full source, scripts, and reports on GitHub &rarr;</a></p>
+
+</div>
+</body>
+</html>
